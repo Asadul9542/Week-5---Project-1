@@ -1,0 +1,62 @@
+---
+title: "Week 5 Project 1 - Data Analysis"
+author: "MD Asadul Islam"
+date: "`r Sys.Date()`"
+output: openintro::lab_report
+---
+
+```{r load-packages, message=FALSE}
+library(dplyr)
+library(stringr)
+```
+
+### Read the data from text file.
+
+```{r code-chunk-label for reading text file}
+# Read the text file
+file_path <- "C:\\Users\\HP\\Downloads\\tournamentinfo.txt"
+chess_data <- readLines(file_path, warn=FALSE)
+head(chess_data)
+```
+
+### Processing the data
+```{r code chunk for processing data }
+summary(chess_data)
+# Extracting relevant data by row
+name <- seq(5, 196, 3) 
+state_point <- seq(6, 196, 3) 
+
+#Extracting player ID and points from name
+player <- as.integer(str_extract(chess_data[name], "\\d+")) 
+name_player <- str_replace_all(str_extract(chess_data[name],"([|]).+?\\1"),"[|]","") 
+points <- str_extract(chess_data[name], "\\d.\\d") 
+
+#extracting state and rating
+state <- str_extract(chess_data[state_point], "[A-Z]{2}" ) 
+rating <- as.integer(str_replace_all(str_extract(chess_data[state_point], "R: \\s?\\d{3,4}"), "R:\\s", ""))
+
+# Combining the vectors to form a file which has clean data
+new_chess_data <- data.frame(player, name_player, state, points, rating) 
+head(new_chess_data)
+
+# Calculating average opponent rating:
+opponent <- str_extract_all(str_extract_all(chess_data[name], "\\d+\\|"), "\\d+")
+avg_opp <- length(name)
+
+for (i in 1:length(name)) 
+{ 
+  avg_opp[i] <- round(mean(rating[as.numeric(unlist(opponent[player[i]]))]), digits = 0)
+}
+avg_opp
+
+# Adding the avg variable to the new chess data
+newchessdata <- data.frame(player, name, state, points, rating, avg_opp)
+head(newchessdata)
+
+```
+### Write to CSV
+
+```{r code chunk for writing data to csv}
+#Write data to csv
+write.csv(newchessdata, file = "newchessdatainfo.csv")
+```
